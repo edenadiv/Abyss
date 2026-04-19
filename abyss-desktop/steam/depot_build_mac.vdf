@@ -1,0 +1,8 @@
+"DepotBuildConfig"
+{
+    "DepotID" "$DEPOT_MAC$"
+    "ContentRoot" "../release/mac-universal/Abyss.app"
+    "FileMapping" { "LocalPath" "*" "DepotPath" "Abyss.app" "recursive" "1" }
+    "FileExclusion" "**/.DS_Store"
+    "FileExclusion" "**/*.map"
+}

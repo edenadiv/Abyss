@@ -1,0 +1,8 @@
+"DepotBuildConfig"
+{
+    "DepotID" "$DEPOT_LINUX$"
+    "ContentRoot" "../release/linux-unpacked"
+    "FileMapping" { "LocalPath" "*" "DepotPath" "." "recursive" "1" }
+    "FileExclusion" "**/.DS_Store"
+    "FileExclusion" "**/*.map"
+}

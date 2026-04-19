@@ -1,0 +1,28 @@
+# deps / build
+node_modules/
+dist/
+release/
+
+# electron compiled output
+electron/*.js
+electron/*.cjs.map
+electron/*.js.map
+!electron/preload.cjs
+
+# fetched assets (regenerable)
+assets/art/*.jpg
+assets/art/*.ktx2
+assets/characters/*.ktx2
+assets/characters/*.png
+assets/hdri/*.hdr
+assets/hdri/*.env
+assets/fonts/*.woff2
+assets/audio/*.{mp3,ogg,wav}
+
+# steam build artifacts
+steam/build/
+steam/output/
+
+# editor / macOS
+.DS_Store
+*.log
