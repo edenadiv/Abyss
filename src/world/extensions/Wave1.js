@@ -45,7 +45,7 @@ function enhanceLighting(world) {
   moon.position.set(14, 28, 10);
   moon.target.position.set(0, 0, 0);
   moon.castShadow = true;
-  moon.shadow.mapSize.set(2048, 2048);
+  moon.shadow.mapSize.set(1024, 1024);
   moon.shadow.camera.near = 0.5;
   moon.shadow.camera.far = 80;
   moon.shadow.camera.left = -38;
@@ -68,10 +68,9 @@ function enhanceLighting(world) {
   tablePositions.forEach((p, i) => {
     const lamp = new THREE.PointLight(0xffb87a, 0.9, 9, 2.1);
     lamp.position.set(p.x, 3.2, p.z);
-    lamp.castShadow = true;
-    lamp.shadow.mapSize.set(512, 512);
-    lamp.shadow.camera.near = 0.2;
-    lamp.shadow.camera.far = 12;
+    // Cube-map shadows on 7 lamps = 42 extra scene passes per frame.
+    // The moon + table felt reads just fine without them.
+    lamp.castShadow = false;
     lamp.__basePhase = Math.random() * Math.PI * 2;
     world.scene.add(lamp);
     world.__tableLamps.push(lamp);
@@ -224,67 +223,9 @@ function patchCausticShader(material, tex, uTime) {
    PARTICLES — bubbles (InstancedMesh) + sediment (Points)
    ============================================================ */
 function buildParticles(world) {
-  // Bubbles: 200 small spheres rising with drift, billboard-ish via
-  // Sprite. Using Points with custom shader is cheaper than InstancedMesh
-  // for this count and looks right.
-  const BUBBLE_COUNT = 200;
-  const geom = new THREE.BufferGeometry();
-  const positions = new Float32Array(BUBBLE_COUNT * 3);
-  const seeds = new Float32Array(BUBBLE_COUNT);
-  const sizes = new Float32Array(BUBBLE_COUNT);
-  for (let i = 0; i < BUBBLE_COUNT; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const r = 4 + Math.random() * 26;
-    positions[i * 3] = Math.cos(a) * r;
-    positions[i * 3 + 1] = Math.random() * 18;
-    positions[i * 3 + 2] = Math.sin(a) * r;
-    seeds[i] = Math.random() * 100;
-    sizes[i] = 6 + Math.random() * 14;
-  }
-  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geom.setAttribute('seed', new THREE.BufferAttribute(seeds, 1));
-  geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-  const bubbleMat = new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    uniforms: {
-      uTime: { value: 0 },
-      uTex: { value: buildBubbleTex() },
-    },
-    vertexShader: `
-      attribute float seed;
-      attribute float size;
-      uniform float uTime;
-      varying float vSeed;
-      void main() {
-        vSeed = seed;
-        vec3 p = position;
-        float t = uTime + seed * 2.0;
-        p.y = mod(position.y + t * 0.45, 18.0);
-        p.x += sin(t * 0.7 + seed) * 0.3;
-        p.z += cos(t * 0.6 + seed * 1.3) * 0.3;
-        vec4 mv = modelViewMatrix * vec4(p, 1.0);
-        gl_Position = projectionMatrix * mv;
-        gl_PointSize = size * (250.0 / -mv.z);
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D uTex;
-      varying float vSeed;
-      void main() {
-        vec4 tex = texture2D(uTex, gl_PointCoord);
-        if (tex.a < 0.05) discard;
-        gl_FragColor = vec4(0.75, 0.92, 1.0, 0.35) * tex;
-      }
-    `,
-  });
-  const bubbles = new THREE.Points(geom, bubbleMat);
-  bubbles.frustumCulled = false;
-  world.scene.add(bubbles);
-  world.__bubbles = bubbles;
-  world.__bubbleMat = bubbleMat;
+  // 3D bubble particles removed — the 200-point cloud was slowing the lobby.
+  world.__bubbles = null;
+  world.__bubbleMat = null;
 
   // Sediment (slow drifting motes)
   const SED_COUNT = 500;
@@ -369,30 +310,16 @@ function rebuildComposer(world) {
   const render = new RenderPass(scene, camera);
   composer.addPass(render);
 
-  // SSAO — gentle, not crunchy
-  const ssao = new SSAOPass(scene, camera, w, h);
-  ssao.kernelRadius = 4;
-  ssao.minDistance = 0.002;
-  ssao.maxDistance = 0.12;
-  ssao.output = SSAOPass.OUTPUT.Default;
-  composer.addPass(ssao);
-  world.__ssao = ssao;
+  // SSAO + Bokeh removed — each was doing extra full-scene depth passes
+  // every frame. The underwater fog already cues depth; ambient occlusion
+  // is barely visible in a dark, fogged room.
+  world.__ssao = null;
+  world.__bokeh = null;
 
-  // Bloom — keep the existing underwater glow
-  const bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.8, 0.7, 0.3);
+  // Bloom — cheap; keeps the glowing emissives readable
+  const bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.6, 0.7, 0.3);
   composer.addPass(bloom);
   world.__bloom = bloom;
-
-  // Depth of field — focus at nearest interactable
-  const bokeh = new BokehPass(scene, camera, {
-    focus: 6.0,
-    aperture: 0.00015,
-    maxblur: 0.006,
-    width: w,
-    height: h,
-  });
-  composer.addPass(bokeh);
-  world.__bokeh = bokeh;
 
   // Underwater chromatic aberration + vignette (bound to breath via uniform)
   const vignette = new ShaderPass(makeVignetteShader());

@@ -1757,15 +1757,9 @@ function POVLayer({ lowBreath }) {
       dy: -(80 + Math.random() * 40) + 'vh',
     })), []);
 
-  const bubbles = useMemo(() =>
-    Array.from({ length: 14 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      size: 4 + Math.random() * 16,
-      duration: 6 + Math.random() * 10,
-      delay: Math.random() * -16,
-      wiggle: (Math.random() - 0.5) * 80 + 'px',
-    })), []);
+  // POV bubbles removed — 14 constantly-animating CSS elements were adding
+  // compositor cost in the lobby for negligible visual benefit.
+  const bubbles = [];
 
   const silhouettes = useMemo(() =>
     Array.from({ length: 3 }, (_, i) => ({
