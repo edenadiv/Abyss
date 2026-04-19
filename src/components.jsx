@@ -147,7 +147,7 @@ function SirenPortrait({ mood = 'neutral' }) {
 }
 
 // ---------- BREATH HUD ----------
-function BreathHUD({ breath, max, depth }) {
+function BreathHUD({ breath, max, depth, houseEdgeTier }) {
   return (
     <div className="hud">
       <div className="breath-meter">
@@ -161,6 +161,45 @@ function BreathHUD({ breath, max, depth }) {
         <span>DEPTH</span>
         <span className="depth-value">—{depth}m</span>
       </div>
+      {houseEdgeTier ? <HouseEdgeBar tier={houseEdgeTier}/> : null}
+    </div>
+  );
+}
+
+// ---------- HOUSE EDGE BAR ----------
+const HOUSE_EDGE_TIERS = ['easy', 'normal', 'hard', 'rigged', 'cruel'];
+function HouseEdgeBar({ tier }) {
+  const idx = Math.max(0, HOUSE_EDGE_TIERS.indexOf(tier));
+  const prevTierRef = useRef(tier);
+  const [pulse, setPulse] = useState(false);
+  useEffect(() => {
+    if (prevTierRef.current !== tier) {
+      const prevIdx = HOUSE_EDGE_TIERS.indexOf(prevTierRef.current);
+      if (idx > prevIdx) {
+        setPulse(true);
+        setTimeout(() => setPulse(false), 1200);
+        try {
+          if (window.__trappedAudio && window.__trappedAudio.playBellToll) {
+            window.__trappedAudio.playBellToll();
+          }
+        } catch {}
+      }
+      prevTierRef.current = tier;
+    }
+  }, [tier, idx]);
+  return (
+    <div className={`house-edge-bar${pulse ? ' pulse' : ''}`}>
+      <div className="house-edge-label">HOUSE EDGE</div>
+      <div className="house-edge-segments">
+        {HOUSE_EDGE_TIERS.map((t, i) => (
+          <div
+            key={t}
+            className={`house-edge-seg seg-${t}${i <= idx ? ' on' : ''}${i === idx ? ' current' : ''}`}
+            title={t.toUpperCase()}
+          />
+        ))}
+      </div>
+      <div className="house-edge-tier-name">{tier.toUpperCase()}</div>
     </div>
   );
 }

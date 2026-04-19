@@ -563,11 +563,136 @@ const AC = typeof window !== 'undefined'
       });
     }
 
+    /* ======== Wave 1 additions — fanfare, heartbeat ramp, fragment hum, gallery duck ======== */
+
+    winFanfare(amount = 20) {
+      if (!this.ctx) return;
+      const ctx = this.ctx;
+      const now = ctx.currentTime;
+      const size = Math.min(1.8, Math.max(0.4, amount / 40));
+
+      // Brass-ish triad swell using detuned saws
+      const freqs = [261.63, 329.63, 392.0]; // C major
+      freqs.forEach((f, i) => {
+        [0, -4, 4].forEach(detune => {
+          const o = ctx.createOscillator();
+          o.type = 'sawtooth';
+          o.frequency.value = f;
+          o.detune.value = detune;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(0.06 * size, now + 0.08 + i * 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 0.7 + size * 0.5);
+          const lp = ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.value = 2400;
+          o.connect(lp).connect(g).connect(this.nodes.master);
+          o.start(now);
+          o.stop(now + 1.0 + size * 0.5);
+        });
+      });
+
+      // Bell ding on top
+      const bell = ctx.createOscillator();
+      bell.type = 'sine';
+      bell.frequency.setValueAtTime(1760, now);
+      bell.frequency.exponentialRampToValueAtTime(880, now + 0.6);
+      const bellG = ctx.createGain();
+      bellG.gain.setValueAtTime(0.0001, now);
+      bellG.gain.exponentialRampToValueAtTime(0.12 * size, now + 0.02);
+      bellG.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+      bell.connect(bellG).connect(this.nodes.master);
+      bell.start(now);
+      bell.stop(now + 0.9);
+    }
+
+    setHeartbeatBpm(bpm) {
+      if (this.__hbBpm === bpm) return;
+      this.__hbBpm = bpm;
+      if (this.__hbTimer) { clearInterval(this.__hbTimer); this.__hbTimer = null; }
+      if (!bpm || bpm <= 0) return;
+      const interval = Math.round(60000 / bpm);
+      this.__hbTimer = setInterval(() => this.playHeartbeat(), interval);
+    }
+
+    setFragmentHum(distance) {
+      if (!this.ctx || !this.nodes.master) return;
+      // Lazy-init a continuous low sine hum that fades in when a fragment is near.
+      if (!this.__humNodes) {
+        const ctx = this.ctx;
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = 110;
+        const o2 = ctx.createOscillator();
+        o2.type = 'sine';
+        o2.frequency.value = 165; // perfect fifth
+        const g = ctx.createGain();
+        g.gain.value = 0.0001;
+        o.connect(g);
+        o2.connect(g);
+        g.connect(this.nodes.master);
+        o.start(); o2.start();
+        this.__humNodes = { o, o2, g };
+      }
+      const near = Math.max(0, Math.min(1, 1.0 - (distance - 1) / 6));
+      const target = 0.0001 + near * 0.09;
+      const now = this.ctx.currentTime;
+      this.__humNodes.g.gain.cancelScheduledValues(now);
+      this.__humNodes.g.gain.linearRampToValueAtTime(target, now + 0.2);
+    }
+
+    enterGallery() {
+      if (!this.nodes.master) return;
+      const now = this.ctx.currentTime;
+      this.__preGalleryGain = this.__preGalleryGain || this.nodes.master.gain.value || 0.6;
+      this.nodes.master.gain.cancelScheduledValues(now);
+      this.nodes.master.gain.linearRampToValueAtTime(this.__preGalleryGain * 0.35, now + 1.2);
+      // Long-reverb choir-ish drone
+      if (this.__choirNodes) return;
+      const ctx = this.ctx;
+      const mix = ctx.createGain();
+      mix.gain.value = 0.0001;
+      const notes = [220, 261.63, 329.63, 392]; // Am7
+      const oscs = notes.map(f => {
+        const o = ctx.createOscillator();
+        o.type = 'triangle';
+        o.frequency.value = f;
+        const og = ctx.createGain();
+        og.gain.value = 0.2;
+        o.connect(og).connect(mix);
+        o.start();
+        return o;
+      });
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1200;
+      mix.connect(lp).connect(this.nodes.master);
+      mix.gain.linearRampToValueAtTime(0.12, now + 1.5);
+      this.__choirNodes = { mix, oscs, lp };
+    }
+
+    leaveGallery() {
+      if (!this.nodes.master) return;
+      const now = this.ctx.currentTime;
+      this.nodes.master.gain.cancelScheduledValues(now);
+      this.nodes.master.gain.linearRampToValueAtTime(this.__preGalleryGain || 0.6, now + 1.0);
+      if (this.__choirNodes) {
+        const { mix, oscs } = this.__choirNodes;
+        mix.gain.cancelScheduledValues(now);
+        mix.gain.linearRampToValueAtTime(0.0001, now + 1.5);
+        setTimeout(() => {
+          try { oscs.forEach(o => o.stop()); } catch {}
+        }, 1800);
+        this.__choirNodes = null;
+      }
+    }
+
     stop() {
       if (!this.ctx) return;
       if (this.bubbleTimeout) clearTimeout(this.bubbleTimeout);
       if (this.panicTimer) clearInterval(this.panicTimer);
       if (this.chordTimer) clearInterval(this.chordTimer);
+      if (this.__hbTimer) clearInterval(this.__hbTimer);
       try {
         this.nodes.master.gain.cancelScheduledValues(this.ctx.currentTime);
         this.nodes.master.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4);

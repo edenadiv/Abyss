@@ -166,6 +166,11 @@ function App() {
     setPrevEdgeTier(houseEdgeTier);
   }, [houseEdgeTier]);
 
+  // Expose breath to Wave1 (vignette shader + heartbeat ramp + fragment hum)
+  useEffect(() => {
+    window.__trappedBreath = breath;
+  }, [breath]);
+
   // Track max breath for Mirror ending unlock
   useEffect(() => {
     setMaxBreathSeen(m => Math.max(m, breath));
@@ -223,6 +228,13 @@ function App() {
     // Ghost players react
     if (window.__trappedWorld && window.__trappedWorld.markLastResult) window.__trappedWorld.markLastResult(adjusted);
     const audio = window.__trappedAudio;
+    // Win fanfare + loss glitch hooks for Wave 1 feedback
+    try {
+      if (adjusted >= 20 && audio && audio.winFanfare) audio.winFanfare(adjusted);
+      if (adjusted <= -30 && window.__trappedWorld && window.__trappedWorld.triggerLossGlitch) {
+        window.__trappedWorld.triggerLossGlitch(-adjusted);
+      }
+    } catch {}
     // Tarot card reveal
     const cursedActive = hasTrinket('drowning-chain');
     const card = pickTarotCard(adjusted, cursedActive);
@@ -792,7 +804,7 @@ function App() {
 
       {/* HUD sits above the POV overlays so it stays sharp and readable */}
       {inWorld && (
-        <BreathHUD breath={breath} max={TARGET_BREATH} depth={depthNum}/>
+        <BreathHUD breath={breath} max={TARGET_BREATH} depth={depthNum} houseEdgeTier={houseEdgeTier}/>
       )}
 
       <TweaksPanel visible={tweaksVisible} settings={settings} setSettings={setSettings}/>

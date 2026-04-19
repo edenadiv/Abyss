@@ -10,6 +10,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FRAGMENTS } from '../mythology/fragments.js';
+import { applyWave1 } from './extensions/Wave1.js';
 
 const TWEEN = null; // no TWEEN dep; keep API simple
 
@@ -3082,6 +3083,8 @@ const TWEEN = null; // no TWEEN dep; keep API simple
       this.onResize = () => this.handleResize();
       window.addEventListener('resize', this.onResize);
       this.handleResize();
+      // Wave 1 — render overhaul, gallery, mermaid idle, loss glitch.
+      applyWave1(this);
       this.loop();
     }
 
