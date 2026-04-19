@@ -1,5 +1,14 @@
+# node / vite
+node_modules/
+dist/
+.vite/
+*.log
+
 # macOS
 .DS_Store
+
+# Legacy monolith kept for reference during the refactor
+.legacy/
 
 # Claude Code local settings (not shared)
 .claude/

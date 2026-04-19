@@ -1,0 +1,24 @@
+{
+  "name": "abyss",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ABYSS — a walkable 3D underwater casino. Seven tables. One door. Your breath in every seat.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.128.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "vite": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -2,15 +2,23 @@
 
 > *A casino in the deep. Seven tables. One door. Your breath in every seat.*
 
-Abyss is a first-person 3D walkable underwater casino, delivered as a single self-contained HTML file. You descend into a gilt, neon-lit chamber and gamble your breath against a house that silently rigs itself as you play. Eight endings. A showgirl mermaid on a pole. A gallery of public-domain masterpieces on the walls. A Confessional you can visit if you want to stop.
+Abyss is a first-person 3D walkable underwater casino built with **Vite + React 18 + Three.js**. You descend into a gilt, neon-lit chamber and gamble your breath against a house that silently rigs itself as you play. Eight endings. A showgirl mermaid on a pole. A gallery of public-domain masterpieces on the walls. A Confessional you can visit if you want to stop.
 
 ## Play
 
 ```bash
-python3 -m http.server 8765
+npm install
+npm run dev
 ```
 
-Open [http://localhost:8765/](http://localhost:8765/) in a modern browser (Chrome/Safari/Firefox all work). Click **Descend** on the title screen, then click again to lock the mouse.
+Open [http://localhost:8765/](http://localhost:8765/) in a modern browser. Click **Descend** on the title screen, then click again to lock the mouse.
+
+For a production bundle:
+
+```bash
+npm run build    # output lands in dist/
+npm run preview  # serves dist/ at http://localhost:4173/
+```
 
 ### Controls
 
@@ -59,17 +67,38 @@ Real public-domain paintings hotlinked from Wikimedia Commons in gilt-framed 3D 
 
 Each ending cinematic has its own backdrop painting. Procedural painterly placeholders stand in when Wikimedia is unreachable.
 
+## Project layout
+
+```
+Abyss/
+├── index.html                (thin entry — just a #root + module script)
+├── package.json              (vite, react, three)
+├── vite.config.js            (port 8765)
+├── public/screenshots/
+└── src/
+    ├── main.jsx              (ReactDOM root)
+    ├── App.jsx               (top-level scene router)
+    ├── components.jsx        (all non-App React UI: HUD, scenes, modals, world wrapper)
+    ├── styles/index.css      (root vars, resets, hud, world, modals, games, endings, animations)
+    ├── games/index.jsx       (Blackjack, Roulette, Baccarat, Slots, Poker, Dice, CoinFlip)
+    ├── world/TrappedWorld.js (Three.js class — scene, meshes, textures, rooms, postfx)
+    ├── audio/TrappedAudio.js (Web Audio — rumble, bells, heartbeats, bubble pops)
+    ├── mythology/            (FRAGMENTS, TRINKETS, TAROT_CARDS, ENDING_CARDS, SIREN_LINES, houseEdge, tables)
+    ├── state/                (meta, ledger, useFragments, useTrinkets)
+    └── utils/                (format, typewriter, deck)
+```
+
 ## Under the hood
 
-- One `index.html` file. No build. No external JS dependencies beyond `three.js`, `@babel/standalone`, `react` + `react-dom`, all CDN.
-- **Three.js** for the walkable 3D: `LatheGeometry` mermaid torsos, `TubeGeometry` tails, `InstancedMesh` coin scatter, `ShaderMaterial` caustics, `EffectComposer` + `UnrealBloomPass` + custom underwater RGB-split `ShaderPass`.
+- **Vite 5** for dev + build. Hot module replacement for React and CSS.
+- **Three.js 0.128** for the walkable 3D: `LatheGeometry` mermaid torsos, `TubeGeometry` tails, `InstancedMesh` coin scatter, `ShaderMaterial` caustics, `EffectComposer` + `UnrealBloomPass` + custom underwater RGB-split `ShaderPass`.
 - **Web Audio API** for everything audible: brown-noise rumble, detuned sine drones on a Phrygian chord progression, vocal-formant Siren humming, bell tolls when the house edge tightens, heartbeat when breath drops below 50, procedural bubble pops, chip-stack clinks, shop bell, fragment-pickup chime.
 - **Canvas 2D** for every texture — NPC faces, scale patterns, tarot cards, felt, marble, wood, brass, stained glass.
 - **React 18** for the UI layer (intro, endings, shop modals, game modals, tarot reveals, ledger).
-- Pure JavaScript, no TypeScript. Pure CSS, no frameworks.
+- Pure JavaScript + JSX, no TypeScript. Pure CSS, no frameworks.
 
 ## Credits
 
-Conceived, designed, and built across many late nights in a single-file fever.
+Conceived, designed, and built across many late nights.
 
 > *In the sea monster we trust.*
