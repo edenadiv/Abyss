@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Claude Code local settings (not shared)
+.claude/
+
+# Debug / seed HTML scratch files used during development
+_t_*.html
+_seed_*.html
+_wm_*.html
+
+# Editor / system
+*.swp
+*.swo
+.vscode/
+.idea/
