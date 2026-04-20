@@ -1,0 +1,50 @@
+# Unreal Engine project ignores — what NOT to commit.
+
+# Build output
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+!Build/*.Target.cs
+Release/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj/
+*.xcworkspace/
+
+# Packaged output
+Builds/
+
+# Temporary shader cache (regenerated per machine)
+*.target
+*.modules
+
+# Fetched assets (regenerable via scripts/)
+Content/Art/*.jpg
+Content/Art/*.png
+Content/Characters/*.png
+Content/Characters/*.jpg
+Content/Audio/*.ogg
+Content/Audio/*.wav
+Content/Audio/*.mp3
+Content/Fonts/*.ttf
+
+# Data regenerated from abyss-desktop
+ThirdParty/data/*.json
+
+# macOS
+.DS_Store
+
+# Steam build artifacts
+steam/build/
+steam/output/

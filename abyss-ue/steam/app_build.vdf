@@ -1,0 +1,17 @@
+"appbuild"
+{
+    "appid"          "$APPID$"
+    "desc"           "Abyss UE — $VERSION$ ($BRANCH$)"
+    "buildoutput"    "steam/output"
+    "contentroot"    "release"
+    "setlive"        "$BRANCH$"
+    "preview"        "0"
+    "local"          ""
+
+    "depots"
+    {
+        "$DEPOT_WIN$"   "steam/depot_build_win.vdf"
+        "$DEPOT_MAC$"   "steam/depot_build_mac.vdf"
+        "$DEPOT_LINUX$" "steam/depot_build_linux.vdf"
+    }
+}

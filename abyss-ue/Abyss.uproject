@@ -1,0 +1,35 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.4",
+  "Category": "Games",
+  "Description": "Abyss — a painterly underwater casino. Seven tables. One door. Your breath in every seat.",
+  "Modules": [
+    {
+      "Name": "Abyss",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "Engine",
+        "CoreUObject",
+        "UMG",
+        "Slate",
+        "SlateCore",
+        "InputCore",
+        "EnhancedInput",
+        "OnlineSubsystem",
+        "OnlineSubsystemSteam",
+        "Json",
+        "JsonUtilities",
+        "MoviePlayer"
+      ]
+    }
+  ],
+  "Plugins": [
+    { "Name": "ModelingToolsEditorMode", "Enabled": true, "TargetAllowList": [ "Editor" ] },
+    { "Name": "EnhancedInput",           "Enabled": true },
+    { "Name": "OnlineSubsystemSteam",    "Enabled": true },
+    { "Name": "OnlineSubsystem",         "Enabled": true },
+    { "Name": "NiagaraExtras",           "Enabled": true }
+  ],
+  "TargetPlatforms": [ "Mac", "Windows", "Linux" ]
+}

@@ -18,9 +18,16 @@ export interface EngineBundle {
 }
 
 async function tryWebGPU(canvas: HTMLCanvasElement): Promise<WebGPUEngine | null> {
+  // Babylon 7's WebGPU path has known issues with DefaultRenderingPipeline +
+  // SSAO2RenderingPipeline (swapchain-texture-in-submit race). Until it's
+  // clean we only attempt WebGPU when ABYSS_WEBGPU=1 is set — the WebGL2
+  // path is visually identical on this scene at 120+ fps on M-class.
   if (typeof navigator === 'undefined' || !(navigator as any).gpu) return null;
+  // Opt-in only — either env at build time, or ?webgpu=1 in the URL.
+  const envOptIn = typeof import.meta.env !== 'undefined' && (import.meta.env as any).VITE_WEBGPU === '1';
+  const urlOptIn = typeof window !== 'undefined' && /[?&]webgpu=1/.test(window.location.search);
+  if (!envOptIn && !urlOptIn) return null;
   try {
-    // Babylon's helper: returns true when WebGPU is actually available + valid.
     const supported = await (WebGPUEngine as any).IsSupportedAsync;
     if (!supported) return null;
     const engine = new WebGPUEngine(canvas, {
@@ -32,7 +39,7 @@ async function tryWebGPU(canvas: HTMLCanvasElement): Promise<WebGPUEngine | null
     await engine.initAsync();
     return engine;
   } catch (err) {
-    console.warn('[engine] WebGPU unavailable, falling back to WebGL2:', err);
+    console.warn('[engine] WebGPU init failed — using WebGL2:', err);
     return null;
   }
 }

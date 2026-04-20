@@ -1,0 +1,7 @@
+"DepotBuildConfig"
+{
+    "DepotID" "$DEPOT_MAC$"
+    "ContentRoot" "../release/Mac"
+    "FileMapping" { "LocalPath" "*" "DepotPath" "." "recursive" "1" }
+    "FileExclusion" "**/.DS_Store"
+}
