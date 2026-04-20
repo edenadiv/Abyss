@@ -5,9 +5,9 @@
 #include "AbyssTypes.h"
 #include "AbyssContent.generated.h"
 
-/* Content subsystem — loads data from ThirdParty/data/*.json at startup.
-   Blueprints and other C++ modules pull fragments / trinkets / endings
-   from here by id, so nothing else needs to know about JSON paths. */
+// Content subsystem — loads JSON files from ThirdParty/data at startup.
+// Blueprints and other modules pull fragments / trinkets / endings from
+// here by id; nothing else needs to know about file paths.
 
 UCLASS()
 class ABYSS_API UAbyssContent : public UGameInstanceSubsystem

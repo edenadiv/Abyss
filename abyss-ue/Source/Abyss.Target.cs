@@ -6,26 +6,16 @@ public class AbyssTarget : TargetRules
     public AbyssTarget(TargetInfo Target) : base(Target)
     {
         Type = TargetType.Game;
-        DefaultBuildSettings = BuildSettingsVersion.V5;
+        DefaultBuildSettings = BuildSettingsVersion.V6;
         IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
         ExtraModuleNames.Add("Abyss");
 
-        // --- Apple Silicon / M4 Max ---
-        if (Target.Platform == UnrealTargetPlatform.Mac)
-        {
-            // ARM64-only build. Smaller .app, faster launch — no x86_64 slice
-            // we'd never run on your M-series Mac.
-            MacPlatform.bUseApplicationSilicon = true;
+        // UE 5.7 on macOS compiles Apple Silicon binaries by default when
+        // running on an ARM Mac — no explicit flag required.
 
-            // Thin LTO in Shipping — real perf bump, link stays fast.
-            bAllowLTCG = Target.Configuration == UnrealTargetConfiguration.Shipping;
-            bPreferThinLTO = true;
-        }
-
-        // Shipping: strip checks + logs. Smaller + faster + harder to debug
-        // post-ship, which is the right tradeoff once we're past QA.
         if (Target.Configuration == UnrealTargetConfiguration.Shipping)
         {
+            bAllowLTCG = true;
             bUseChecksInShipping = false;
             bUseLoggingInShipping = false;
         }

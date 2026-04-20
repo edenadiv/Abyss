@@ -19,12 +19,13 @@ public class Abyss : ModuleRules
             "Json",
             "JsonUtilities",
             "OnlineSubsystem",
-            "OnlineSubsystemSteam",
             "MoviePlayer",
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 
+        // OnlineSubsystemSteam is dynamically loaded — we interact through
+        // IOnlineSubsystem::Get(STEAM_SUBSYSTEM) without a hard link.
         DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
 
         bEnableExceptions = false;

@@ -17,7 +17,6 @@
         "InputCore",
         "EnhancedInput",
         "OnlineSubsystem",
-        "OnlineSubsystemSteam",
         "Json",
         "JsonUtilities",
         "MoviePlayer"
@@ -28,8 +27,7 @@
     { "Name": "ModelingToolsEditorMode", "Enabled": true, "TargetAllowList": [ "Editor" ] },
     { "Name": "EnhancedInput",           "Enabled": true },
     { "Name": "OnlineSubsystemSteam",    "Enabled": true },
-    { "Name": "OnlineSubsystem",         "Enabled": true },
-    { "Name": "NiagaraExtras",           "Enabled": true }
+    { "Name": "OnlineSubsystem",         "Enabled": true }
   ],
   "TargetPlatforms": [ "Mac", "Windows", "Linux" ]
 }
