@@ -67,6 +67,10 @@ private:
     void BuildExitDoor();
 
     UStaticMeshComponent* SpawnMesh(const FString& Name, UStaticMesh* Mesh, const FVector& Loc, const FRotator& Rot, const FVector& Scale, UMaterialInterface* Material = nullptr);
-    UStaticMeshComponent* SpawnTinted(const FString& Name, UStaticMesh* Mesh, const FVector& Loc, const FRotator& Rot, const FVector& Scale, const FLinearColor& Tint);
+    UStaticMeshComponent* SpawnTinted(const FString& Name, UStaticMesh* Mesh, const FVector& Loc, const FRotator& Rot, const FVector& Scale, const FLinearColor& Tint, float Metallic = 0.f, float Roughness = 0.85f, float Emissive = 0.f);
     UPointLightComponent* SpawnPointLight(const FString& Name, const FVector& Loc, const FLinearColor& Color, float Intensity, float AttenRadius);
+
+    void BuildPaintings();
+    void BuildChipStacks();
+    void BuildFloorTiles();
 };

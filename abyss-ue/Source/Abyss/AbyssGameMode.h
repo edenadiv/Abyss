@@ -23,9 +23,11 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category="Abyss") bool bAutoSpawnCasino = true;
     UPROPERTY(EditDefaultsOnly, Category="Abyss") bool bAutoSpawnPostProcess = true;
     UPROPERTY(EditDefaultsOnly, Category="Abyss") bool bAutoSpawnPlayerStart = true;
+    UPROPERTY(EditDefaultsOnly, Category="Abyss") bool bAutoSpawnAtmosphere = true;
 
 private:
     void EnsureCasino();
     void EnsurePostProcess();
     void EnsurePlayerStart();
+    void EnsureAtmosphere();
 };
