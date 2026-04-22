@@ -61,6 +61,7 @@ void AAbyssCasinoBuilder::BeginPlay()
     BuildChandeliers();
     BuildExitDoor();
     BuildPaintings();
+    BuildDealers();
     UE_LOG(LogTemp, Log, TEXT("[AbyssCasino] built %d meshes, %d lights"), SpawnedMeshes.Num(), SpawnedLights.Num());
 }
 
@@ -461,6 +462,121 @@ void AAbyssCasinoBuilder::BuildPaintings()
                         FVector(X - FMath::Cos(A) * 20.f, Y - FMath::Sin(A) * 20.f, 220.f),
                         FLinearColor(1.0f, 0.78f, 0.5f), 800.f, 250.f);
     }
+}
+
+void AAbyssCasinoBuilder::BuildDealers()
+{
+    // One dealer standing behind each of the 7 tables. Seven subtly
+    // different skin tones and bow-tie colors so they read as individuals
+    // rather than clones. Later we'll swap the primitive stack for a real
+    // SkeletalMesh with idle anim — the positions here stay identical.
+    const int32 Count = 7;
+    const TArray<FLinearColor> Skins = {
+        FLinearColor(0.42f, 0.28f, 0.22f, 1.f),
+        FLinearColor(0.28f, 0.16f, 0.10f, 1.f),
+        FLinearColor(0.55f, 0.38f, 0.28f, 1.f),
+        FLinearColor(0.22f, 0.14f, 0.10f, 1.f),
+        FLinearColor(0.48f, 0.32f, 0.24f, 1.f),
+        FLinearColor(0.35f, 0.22f, 0.15f, 1.f),
+        FLinearColor(0.50f, 0.36f, 0.27f, 1.f),
+    };
+    const TArray<FLinearColor> BowTies = {
+        FLinearColor(0.32f, 0.04f, 0.05f, 1.f), // blood
+        FLinearColor(0.05f, 0.10f, 0.25f, 1.f), // navy
+        FLinearColor(0.20f, 0.08f, 0.04f, 1.f), // umber
+        FLinearColor(0.28f, 0.08f, 0.20f, 1.f), // aubergine
+        FLinearColor(0.05f, 0.18f, 0.06f, 1.f), // forest
+        FLinearColor(0.30f, 0.20f, 0.06f, 1.f), // mustard
+        FLinearColor(0.08f, 0.08f, 0.22f, 1.f), // twilight
+    };
+
+    for (int32 i = 0; i < Count; ++i)
+    {
+        const float A = (float)i / Count * PI * 2.f + PI * 0.1f;
+        // Stand the dealer on the outer side of the table, facing inward
+        const float Dist = TableRing + 120.f;
+        const FVector Loc(FMath::Cos(A) * Dist, FMath::Sin(A) * Dist, 0.f);
+        const float Yaw = A * 180.f / PI + 180.f;
+        SpawnDealer(i, Loc, Yaw, Skins[i], BowTies[i]);
+    }
+}
+
+void AAbyssCasinoBuilder::SpawnDealer(int32 Idx, const FVector& Loc, float Yaw, const FLinearColor& Skin, const FLinearColor& BowTie)
+{
+    const FRotator R(0, Yaw, 0);
+    const FLinearColor Jacket = FLinearColor(0.018f, 0.018f, 0.022f, 1.f);
+    const FLinearColor Shirt  = FLinearColor(0.55f, 0.52f, 0.48f, 1.f);
+    const FLinearColor Pants  = FLinearColor(0.012f, 0.012f, 0.015f, 1.f);
+    const FLinearColor Hair   = FLinearColor(0.018f, 0.012f, 0.008f, 1.f);
+
+    // Forward direction relative to dealer (toward the table/stage)
+    const FVector Fwd = R.Vector();
+    const FVector Right = FRotationMatrix(R).GetUnitAxis(EAxis::Y);
+
+    // Legs — two cylinders, slight splay
+    SpawnTinted(FString::Printf(TEXT("DLegL_%d"), Idx), CylinderMesh,
+                Loc + Right * -10.f + FVector(0, 0, 45.f), R,
+                FVector(0.16f, 0.16f, 0.45f), Pants, 0.0f, 0.8f);
+    SpawnTinted(FString::Printf(TEXT("DLegR_%d"), Idx), CylinderMesh,
+                Loc + Right * 10.f + FVector(0, 0, 45.f), R,
+                FVector(0.16f, 0.16f, 0.45f), Pants, 0.0f, 0.8f);
+    // Shoes — brass-dark slab under each foot
+    SpawnTinted(FString::Printf(TEXT("DShoeL_%d"), Idx), CubeMesh,
+                Loc + Right * -10.f + Fwd * 4.f + FVector(0, 0, 4.f), R,
+                FVector(0.18f, 0.35f, 0.07f), FLinearColor(0.01f, 0.01f, 0.01f, 1.f), 0.1f, 0.5f);
+    SpawnTinted(FString::Printf(TEXT("DShoeR_%d"), Idx), CubeMesh,
+                Loc + Right * 10.f + Fwd * 4.f + FVector(0, 0, 4.f), R,
+                FVector(0.18f, 0.35f, 0.07f), FLinearColor(0.01f, 0.01f, 0.01f, 1.f), 0.1f, 0.5f);
+
+    // Torso — jacket (cube) + inner shirt strip (thin cube in front)
+    SpawnTinted(FString::Printf(TEXT("DTorso_%d"), Idx), CubeMesh,
+                Loc + FVector(0, 0, 115.f), R,
+                FVector(0.42f, 0.54f, 0.48f), Jacket, 0.0f, 0.7f);
+    SpawnTinted(FString::Printf(TEXT("DShirt_%d"), Idx), CubeMesh,
+                Loc + Fwd * 14.f + FVector(0, 0, 115.f), R,
+                FVector(0.06f, 0.18f, 0.42f), Shirt, 0.0f, 0.55f);
+    // Bow tie
+    SpawnTinted(FString::Printf(TEXT("DBow_%d"), Idx), CubeMesh,
+                Loc + Fwd * 17.f + FVector(0, 0, 140.f), R,
+                FVector(0.03f, 0.18f, 0.05f), BowTie, 0.0f, 0.75f);
+    // Brass name tag
+    SpawnTinted(FString::Printf(TEXT("DTag_%d"), Idx), CubeMesh,
+                Loc + Fwd * 17.f + Right * 12.f + FVector(0, 0, 128.f), R,
+                FVector(0.02f, 0.08f, 0.03f), AbyssPalette::Brass, 1.0f, 0.18f);
+
+    // Shoulders
+    SpawnTinted(FString::Printf(TEXT("DShoulder_%d"), Idx), CubeMesh,
+                Loc + FVector(0, 0, 148.f), R,
+                FVector(0.48f, 0.60f, 0.10f), Jacket, 0.0f, 0.7f);
+
+    // Arms — cylinders slightly forward (dealer pose, hands on table)
+    SpawnTinted(FString::Printf(TEXT("DArmL_%d"), Idx), CylinderMesh,
+                Loc + Right * -28.f + Fwd * 12.f + FVector(0, 0, 120.f),
+                R + FRotator(20.f, 0, 0),
+                FVector(0.11f, 0.11f, 0.32f), Jacket, 0.0f, 0.7f);
+    SpawnTinted(FString::Printf(TEXT("DArmR_%d"), Idx), CylinderMesh,
+                Loc + Right * 28.f + Fwd * 12.f + FVector(0, 0, 120.f),
+                R + FRotator(20.f, 0, 0),
+                FVector(0.11f, 0.11f, 0.32f), Jacket, 0.0f, 0.7f);
+    // Hands (small spheres at end of arms)
+    SpawnTinted(FString::Printf(TEXT("DHandL_%d"), Idx), SphereMesh,
+                Loc + Right * -28.f + Fwd * 36.f + FVector(0, 0, 98.f), R,
+                FVector(0.13f, 0.13f, 0.13f), Skin, 0.0f, 0.75f);
+    SpawnTinted(FString::Printf(TEXT("DHandR_%d"), Idx), SphereMesh,
+                Loc + Right * 28.f + Fwd * 36.f + FVector(0, 0, 98.f), R,
+                FVector(0.13f, 0.13f, 0.13f), Skin, 0.0f, 0.75f);
+
+    // Neck + head
+    SpawnTinted(FString::Printf(TEXT("DNeck_%d"), Idx), CylinderMesh,
+                Loc + FVector(0, 0, 158.f), R,
+                FVector(0.15f, 0.15f, 0.08f), Skin, 0.0f, 0.7f);
+    SpawnTinted(FString::Printf(TEXT("DHead_%d"), Idx), SphereMesh,
+                Loc + FVector(0, 0, 176.f), R,
+                FVector(0.28f, 0.26f, 0.30f), Skin, 0.0f, 0.72f);
+    // Hair — dark cap on top of head
+    SpawnTinted(FString::Printf(TEXT("DHair_%d"), Idx), SphereMesh,
+                Loc + FVector(0, 0, 181.f), R,
+                FVector(0.30f, 0.28f, 0.22f), Hair, 0.0f, 0.85f);
 }
 
 void AAbyssCasinoBuilder::BuildChipStacks()

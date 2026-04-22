@@ -73,4 +73,6 @@ private:
     void BuildPaintings();
     void BuildChipStacks();
     void BuildFloorTiles();
+    void BuildDealers();
+    void SpawnDealer(int32 Index, const FVector& Loc, float Yaw, const FLinearColor& SkinTone, const FLinearColor& BowTie);
 };
